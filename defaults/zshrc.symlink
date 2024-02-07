@@ -103,3 +103,6 @@ if [[ "$DOTFILES_PROFILE_ZSHRC" == true ]]; then
     unsetopt xtrace
     exec 2>&3 3>&-
 fi
+
+
+export PATH="$PATH:/Applications/ServiceNow CLI/bin"
