@@ -115,7 +115,7 @@ function dotfiles_install() {
       file_dest="$HOME/.`basename \"${file_source%.*}\"`"
       if [[ ! " ${cloned_repos[*]} " =~ " $file_source " ]]; then
         cloned_repos+=($file_source)
-        install_file git $file_source $file_dest &
+        install_file git $file_source $file_dest
         did_clone=true
       fi
     done
@@ -127,7 +127,7 @@ function dotfiles_install() {
 
   for file_source in $(dotfiles_find \*.themegitrepo); do
     file_dest="$HOME/.oh-my-zsh/custom/themes/`basename \"${file_source%.*}\"`"
-    install_file git $file_source $file_dest &
+    install_file git $file_source $file_dest
   done
   wait
 
@@ -158,53 +158,63 @@ function dotfiles_install() {
     fi
   done
 
-  # preferences
-  for file_source in $(dotfiles_find \*.plist); do
-    file_dest="$HOME/Library/Preferences/`basename $file_source`"
-    install_file copy $file_source $file_dest
-  done
+  if [[ "Darwin" == "$(uname)" ]]; then
+    # preferences
+    for file_source in $(dotfiles_find \*.plist); do
+      file_dest="$HOME/Library/Preferences/`basename $file_source`"
+      install_file copy $file_source $file_dest
+    done
 
-  # fonts
-  for file_source in $(dotfiles_find \*.otf); do
-    file_dest="$HOME/Library/Fonts/$(basename $file_source)"
-    install_file copy $file_source $file_dest
-  done
-  for file_source in $(dotfiles_find \*.ttf); do
-    file_dest="$HOME/Library/Fonts/$(basename $file_source)"
-    install_file copy $file_source $file_dest
-  done
-  for file_source in $(dotfiles_find \*.ttc); do
-    file_dest="$HOME/Library/Fonts/$(basename $file_source)"
-    install_file copy $file_source $file_dest
-  done
+    # fonts
+    for file_source in $(dotfiles_find \*.otf); do
+      file_dest="$HOME/Library/Fonts/$(basename $file_source)"
+      install_file copy $file_source $file_dest
+    done
+    for file_source in $(dotfiles_find \*.ttf); do
+      file_dest="$HOME/Library/Fonts/$(basename $file_source)"
+      install_file copy $file_source $file_dest
+    done
+    for file_source in $(dotfiles_find \*.ttc); do
+      file_dest="$HOME/Library/Fonts/$(basename $file_source)"
+      install_file copy $file_source $file_dest
+    done
 
-  # launch agents
-  for file_source in $(dotfiles_find \*.launchagent); do
-    file_dest="$HOME/Library/LaunchAgents/$(basename $file_source | sed 's/.launchagent//')"
-    install_file copy $file_source $file_dest
-  done
+    # launch agents
+    for file_source in $(dotfiles_find \*.launchagent); do
+      file_dest="$HOME/Library/LaunchAgents/$(basename $file_source | sed 's/.launchagent//')"
+      install_file copy $file_source $file_dest
+    done
+  fi
 }
 
 function install_arch_list() {
-  if sysctl -n machdep.cpu.brand_string | grep "Apple" > /dev/null; then
-    echo "arm64e"
+  if [[ "Darwin" == "$(uname)" ]]; then
+    if sysctl -n machdep.cpu.brand_string | grep "Apple" > /dev/null; then
+      echo "arm64e"
+    fi
   fi
   echo "x86_64"
 }
 
 function install() {
-  if sysctl -n machdep.cpu.brand_string | grep "Apple" > /dev/null; then
-    if [ $(uname -m) != "arm64" ]; then
-      fail "this command must be run on an arm64 terminal on Apple Silicon"
-    fi
-    if [[ ! -f "/usr/libexec/rosetta/oahd" ]]; then
-      run 'installing Rosetta' "/usr/sbin/softwareupdate --install-rosetta --agree-to-license"
+  if [[ "Darwin" == "$(uname)" ]]; then
+    if sysctl -n machdep.cpu.brand_string | grep "Apple" > /dev/null; then
+      if [ $(uname -m) != "arm64" ]; then
+        fail "this command must be run on an arm64 terminal on Apple Silicon"
+      fi
+      if [[ ! -f "/usr/libexec/rosetta/oahd" ]]; then
+        run 'installing Rosetta' "/usr/sbin/softwareupdate --install-rosetta --agree-to-license"
+      fi
     fi
   fi
   dotfiles_install
   for arch in $(install_arch_list); do
     info "running installers for $arch"
-    arch -arch "$arch" "$libdir/install-arch.zsh"
+    if [[ "Darwin" == "$(uname)" ]]; then
+      arch -arch "$arch" "$libdir/install-arch.zsh"
+    else
+      "$libdir/install-arch.zsh"
+    fi
   done
   create_localrc
 }
@@ -215,11 +225,11 @@ function main() {
     info 'updating dotfiles'
     skip_all_silent=true
     install
-    info 'complete! run dotfiles_reload or restart your session for environment changes to take effect'
+    success 'complete! run dotfiles_reload or restart your session for environment changes to take effect'
   else
     info 'installing dotfiles'
     install
-    info 'complete! use dotfiles_update to keep up to date. run dotfiles_reload or restart your session for environment changes to take effect'
+    success 'complete! use dotfiles_update to keep up to date. run dotfiles_reload or restart your session for environment changes to take effect'
   fi
 
   echo ''
