@@ -27,7 +27,19 @@ function brew_prefix() {
   fi
 }
 
+function brew_is_os_supported() {
+  [[ "$(uname)" != "Darwin" ]] && return 0
+  [ ! -f "$(brew_command)" ] && return 0
+  local output
+  output=$($(brew_command) --version 2>&1)
+  ! echo "$output" | grep -qiE "not supported|unsupported|too old|do not provide support"
+}
+
 function brew_install_upgrade_formulas() {
+  if ! brew_is_os_supported; then
+    warn "skipping homebrew: macOS $(sw_vers -productVersion) is not supported by homebrew"
+    return
+  fi
   brew_install_formulas
   brew_upgrade_formulas
 }
