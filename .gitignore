@@ -4,3 +4,4 @@ oh-my-zsh
 .zsh_history
 .zcompdump*
 .zsh_sessions/
+.claude
