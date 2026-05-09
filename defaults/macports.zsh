@@ -1,0 +1,2 @@
+MACPORTS_PREFIX="/opt/local"
+export MACPORTS_PREFIX

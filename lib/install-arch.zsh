@@ -4,12 +4,14 @@ source $libdir/dotfiles.zsh
 source $libdir/terminal.zsh
 source $libdir/apt.zsh
 source $libdir/homebrew.zsh
+source $libdir/macports.zsh
 source $libdir/mas.zsh
 source $libdir/git.zsh
 
 function run_installers() {
   apt_install_upgrade
   brew_install_upgrade_formulas
+  port_install_upgrade_formulas
   mas_install_upgrade_formulas
 
   dotfiles_find_installer install.sh | while read installer ; do run "running ${installer}" "${installer}" ; done

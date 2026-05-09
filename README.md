@@ -87,6 +87,7 @@ Installation steps during bootstrap can be handled in several ways:
 - `install.mas`: A list of App Store apps to install
 - `install.open`: A list of files to be handled by the default application association using the `open` command
 - `install.apt`: A list of apt packages to install
+- `install.macports`: A list of MacPorts ports to install (requires MacPorts to be pre-installed from https://www.macports.org/install.php)
 
 #### Installing from the App Store with `install.mas` files ####
 
